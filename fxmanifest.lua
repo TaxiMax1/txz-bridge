@@ -1,23 +1,22 @@
-shared_script '@beckXnavi_gangmenu/ai_module_fg-obfuscated.lua'
 fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-author 'Emualte - Taxzyyy'
+author 'TXZ Scripts - Taxzyyy'
 
 shared_scripts {
-    '@ox_lib/init.lua',
-    -- 'config.lua',
+  '@ox_lib/init.lua',
 }
 
 client_scripts {
-    'modules/*.lua',
-    'modules/vehicle/*.lua',
-    'modules/ped/*.lua',
+  'modules/*.lua',
+  'modules/vehicle/*.lua',
+  'modules/ped/*.lua',
+  'modules/networkedscences/*.lua',
 }
 
 server_scripts {
-    'server.lua',    
-    'modules/getinfo/*.lua',  
-    '@oxmysql/lib/MySQL.lua',
+  'server.lua',    
+  'modules/getinfo/*.lua',  
+  '@oxmysql/lib/MySQL.lua',
 }

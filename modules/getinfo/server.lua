@@ -1,7 +1,7 @@
 ESX = exports['es_extended']:getSharedObject()
 
 CreateThread(function()
-    print("[txz_metadata] Starter scanning af metadata i txz_metadata...")
+    print("[txz_metadata] Starting metadata scan...")
 
     MySQL.Async.fetchAll("SELECT license, metadata FROM txz_metadata", {}, function(result)
         local updated = 0
