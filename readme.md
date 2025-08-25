@@ -2,18 +2,18 @@
 
 A lightweight FiveM utility bridge that exposes **exports** for:
 
-- 🚗 Vehicle spawning (`SpawnCar`)
-- 🧍 Ped spawning with optional animations/scenarios (`SpawnPed`)
-- 🧩 Network-synchronised interaction scenes (safe cracking, electric box, container/crate opening, USB/phone hacking)
+- Vehicle spawning (`SpawnCar`)
+- Ped spawning with optional animations/scenarios (`SpawnPed`)
+- Network-synchronised interaction scenes (safe cracking, electric box, container/crate opening, USB/phone hacking)
 
 ---
 
-## ✨ Quick Reference
+## Quick Reference
 
 **SpawnVehicle**
 
 ```lua
-local vehicle = exports['txz-bridge']:SpawnCar('adder', vec3(100.0, 200.0, 30.0), 90.0)
+local vehicle = exports['txz-bridge']:SpawnCar('adder', vector3(100.0, 200.0, 30.0), 90.0)
 ```
 
 **CreatePed**
@@ -44,24 +44,56 @@ exports['txz-bridge']:SpawnPed(
 
 ---
 
-## 📦 Installation
+## Installation
 
 1. Drop the resource into your `resources/` folder as `txz-bridge`.
 2. Ensure it in your `server.cfg`:
    ```cfg
    ensure txz-bridge
    ```
-3. **Dependencies (recommended/used by scenes):**
-   - [`ox_lib`](https://github.com/overextended/ox_lib) (for `lib.requestModel`, `lib.requestAnimDict`, etc.)
+3. Dependencies (recommended/used by scenes):
+   - `ox_lib` (for `lib.requestModel`, `lib.requestAnimDict`, etc.)
    - A minigame resource for scenes (you can swap to your own):
      - `st_minigames` (used by **SafeCrack**)
      - `elevate-minigames` (used by **EletricBox**)
 
-> ℹ️ You can replace the minigame exports in the scene functions with your own implementations.
+> You can replace the minigame exports in the scene functions with your own implementations.
 
 ---
 
-## 🚗 API: Vehicles
+## fxmanifest (example)
+
+```lua
+fx_version 'cerulean'
+game 'gta5'
+
+name 'txz-bridge'
+author 'Taxzyyy / Juno'
+version '1.0.0'
+description 'Spawn utilities + networked scenes'
+
+lua54 'yes'
+
+client_scripts {
+  '@ox_lib/init.lua', -- if you use ox_lib helpers
+  'client/*.lua',
+}
+
+exports {
+  'SpawnCar',
+  'SpawnPed',
+  'SafeCrack',
+  'EletricBox',    -- note: export name kept as-is
+  'OpenContainer',
+  'OpenCrate',
+  'HackUSB',
+  'HackPhone',
+}
+```
+
+---
+
+## API: Vehicles
 
 ### `SpawnCar(model, coords, heading, cb?) -> number|nil`
 Spawn a vehicle and return its entity handle.
@@ -88,7 +120,7 @@ end)
 
 ---
 
-## 🧍 API: Peds
+## API: Peds
 
 ### `SpawnPed(model, coords, heading, useAnimation, animType, animData, cb?) -> number|nil`
 Spawn a ped, optionally play a scenario or animation.
@@ -126,9 +158,9 @@ exports['txz-bridge']:SpawnPed(
 
 ---
 
-## 🎬 API: Networked Scenes
+## API: Networked Scenes
 
-> All scene helpers **request network control** of the target entity and run synchronised scenes for smooth multiplayer playback. Most use `lib.requestAnimDict/model` (ox_lib) and clean up after themselves.
+> All scene helpers request network control of the target entity and run synchronised scenes for smooth multiplayer playback. Most use `lib.requestAnimDict/model` (ox_lib) and clean up after themselves.
 
 ### `SafeCrack(entity, locks, cb, createCam)`
 Runs a full safe-crack interaction with intro/idle/success scenes, then invokes a safe-crack minigame.
@@ -219,7 +251,7 @@ Phone keypad hacking with success/fail branch scenes.
 
 ---
 
-## 🧪 Example: Using with ox_target
+## Example: Using with ox_target
 
 ```lua
 exports.ox_target:addLocalEntity(safeEntity, {
@@ -241,18 +273,18 @@ exports.ox_target:addLocalEntity(safeEntity, {
 
 ---
 
-## 🧠 Implementation Notes & Tips
+## Implementation Notes & Tips
 
-- **Network Control:** Each scene waits until the local player owns the entity (`NetworkGetEntityOwner(entity) == PlayerId()`), requesting control if needed.
-- **Vectors:** Code sometimes uses `coords.xy` / `coords.xyz` shortcuts from FiveM vector types. Keep `vector3(...)` inputs.
-- **Timeouts/Loads:** Model loads have a ~5s timeout. Handle `nil` returns in your code.
-- **Customization:** Replace minigame exports with your own to avoid hard deps on `st_minigames` / `elevate-minigames`.
-- **Ped Safety:** Spawned peds are frozen, invincible, and block non-temp events by default—adjust for your gameplay.
+- Network Control: Each scene waits until the local player owns the entity (`NetworkGetEntityOwner(entity) == PlayerId()`), requesting control if needed.
+- Vectors: Code sometimes uses `coords.xy` / `coords.xyz` shortcuts from FiveM vector types. Keep `vector3(...)` inputs.
+- Timeouts/Loads: Model loads have a ~5s timeout. Handle `nil` returns in your code.
+- Customization: Replace minigame exports with your own to avoid hard deps on `st_minigames` / `elevate-minigames`.
+- Ped Safety: Spawned peds are frozen, invincible, and block non-temporary events by default—adjust for your gameplay.
 
 ---
 
-## 🐞 Troubleshooting
+## Troubleshooting
 
-- **Model failed to load:** Ensure the model name is correct and not restricted by your streaming setup.
-- **Entity doesn’t animate:** Verify you have control of the entity; some map props require requesting temps/mission entity flags.
-- **Minigame export missing:** Swap the minigame calls with your custom UI/game and keep the `cb(...)` signatures.
+- Model failed to load: Ensure the model name is correct and not restricted by your streaming setup.
+- Entity doesn’t animate: Verify you have control of the entity; some map props require requesting temps/mission entity flags.
+- Minigame export missing: Swap the minigame calls with your custom UI/game and keep the `cb(...)` signatures.
