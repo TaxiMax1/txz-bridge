@@ -61,38 +61,6 @@ exports['txz-bridge']:SpawnPed(
 
 ---
 
-## 🔧 fxmanifest (example)
-
-```lua
-fx_version 'cerulean'
-game 'gta5'
-
-name 'txz-bridge'
-author 'Taxzyyy / Juno'
-version '1.0.0'
-description 'Spawn utilities + networked scenes'
-
-lua54 'yes'
-
-client_scripts {
-  '@ox_lib/init.lua', -- if you use ox_lib helpers
-  'client/*.lua',
-}
-
-exports {
-  'SpawnCar',
-  'SpawnPed',
-  'SafeCrack',
-  'EletricBox',    -- note: export name kept as-is
-  'OpenContainer',
-  'OpenCrate',
-  'HackUSB',
-  'HackPhone',
-}
-```
-
----
-
 ## 🚗 API: Vehicles
 
 ### `SpawnCar(model, coords, heading, cb?) -> number|nil`
