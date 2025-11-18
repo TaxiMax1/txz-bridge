@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Notify from "./features/notify";
+import Notify from "./features/notificationWrapper";
 
 type NotifyType = "success" | "error" | "inform";
 type NotifyPosition =
@@ -53,27 +53,6 @@ function App() {
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
   }, []);
-
-  // const triggerTestNotification = () => {
-  //   const id = Date.now() + Math.random();
-  //   const n: NotifyState = {
-  //     id,
-  //     title: "Test Notification",
-  //     description: "This pops up for 10 seconds.",
-  //     type: "inform",
-  //     duration: 10000,
-  //     position: "top",
-  //     style: {
-  //       // backgroundColor: "#d90b0bff",
-  //     },
-  //   };
-
-  //   setNotifications((prev) => [...prev, n]);
-
-  //   setTimeout(() => {
-  //     setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-  //   }, n.duration ?? 4000);
-  // };
 
   return (
     <div style={{ padding: "20px" }}>
