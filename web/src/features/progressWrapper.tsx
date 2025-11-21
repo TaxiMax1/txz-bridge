@@ -5,7 +5,6 @@ export default function ProgressWrapper() {
     const [label, setLabel] = useState("");
     const [percent, setPercent] = useState(0);
 
-    // Listen for NUI progress messages
     useEffect(() => {
         const handler = (event: MessageEvent) => {
             const data = event.data;
@@ -16,7 +15,6 @@ export default function ProgressWrapper() {
         return () => window.removeEventListener("message", handler);
     }, []);
 
-    // Core function: start progress animation
     const triggerProgress = (lbl: string) => {
         setLabel(lbl);
         setPercent(0);
@@ -33,7 +31,6 @@ export default function ProgressWrapper() {
         }, 40);
     };
 
-    // Fake button to simulate event
     const fakeButtonTrigger = () => {
         window.postMessage({
             action: "progress",
@@ -45,7 +42,6 @@ export default function ProgressWrapper() {
         <>
             <style>{styles}</style>
 
-            {/* Fake button */}
             <button className="fakeBtn" onClick={fakeButtonTrigger}>
                 Start Progressbar
             </button>
