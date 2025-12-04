@@ -55,11 +55,11 @@ export default function ProgressWrapper() {
 
                     <div className="progress-box">
                         <div className="segments">
-                            {Array.from({ length: 28 }).map((_, i) => (
+                            {Array.from({ length: 24 }).map((_, i) => (
                                 <div
                                     key={i}
                                     className={`segment ${
-                                        i < Math.round((percent / 100) * 28)
+                                        i < Math.round((percent / 100) * 24)
                                             ? "filled"
                                             : "empty"
                                     }`}
@@ -93,7 +93,7 @@ const styles = `
         bottom: 3%;
         left: 50%;
         transform: translateX(-50%);
-        width: 420px;
+        width: 360px;
         display: flex;
         flex-direction: column;
         gap: 6px;
@@ -154,6 +154,6 @@ const styles = `
         );
     }
 
-    .filled { background-color: #5ef7c8; box-shadow: 0 0 6px #5ef7c8; }
+    .filled { background: linear-gradient(90deg,rgba(63, 204, 171, 1) 0%, rgba(100, 176, 158, 1) 100%); box-shadow: 0 0 6px #5ef7c8; }
     .empty { background-color: rgba(40,40,40,0.85); }
 `;

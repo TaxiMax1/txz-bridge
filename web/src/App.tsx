@@ -1,11 +1,9 @@
-import NotificationWrapper from "./features/notificationWrapper";
-import ProgressWrapper from "./features/progressWrapper"
+import DevIndex from "./features/index";
 
 function App() {
   return (
     <>
-      <NotificationWrapper />
-      <ProgressWrapper />
+      <DevIndex />
     </>
   );
 }
