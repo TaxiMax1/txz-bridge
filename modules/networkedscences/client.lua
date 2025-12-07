@@ -86,7 +86,7 @@ local function EletricBox(entity, cb, time)
     NetworkAddPedToSynchronisedScene(ped, exit, dict, "exit", 1.5, -4.0, 1, 16, 1148846080, 0)
     NetworkAddEntityToSynchronisedScene(entity, exit, dict, "exit_electric_box", 1.0, 1.0, 1)
 
-    local hasWon = exports['elevate-minigames']:CircuitBreaker(1)
+    local hasWon = exports['st-minigames']:CircuitBreaker(1)
     if hasWon then
         NetworkStartSynchronisedScene(exit)
         Wait(2100)

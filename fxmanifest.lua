@@ -8,6 +8,7 @@ discord 'https://discord.gg/6SaC6nJktS'
 shared_scripts {
   '@ox_lib/init.lua',
   '@es_extended/imports.lua',
+  '@txz-bridge/init.lua',
 }
 
 client_scripts {
@@ -17,7 +18,10 @@ client_scripts {
   'modules/locales/client.lua',
   'modules/networkedscences/*.lua',
   'modules/zones/*.lua',
+  'modules/features/client.lua',
   'modules/features/notify/client.lua',
+  'modules/features/progress/client.lua',
+  'modules/features/textui/client.lua',
 }
 
 server_scripts {

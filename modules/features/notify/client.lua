@@ -1,4 +1,4 @@
-local txz = {}
+txz = txz or {}
 
 function txz.notify(data)
     if type(data) ~= "table" then return end
@@ -29,21 +29,7 @@ function txz.notify(data)
     })
 end
 
-exports("getBridge", function()
-    return txz
-end)
-
 RegisterNetEvent("notify:show", function(data)
     if type(data) ~= "table" then return end
     txz.notify(data)
 end)
-
--- RegisterCommand("notifytest", function()
---     txz.notify({
---         title = "Saved!",
---         description = "Your changes were saved.",
---         type = "success",
---         duration = 4000,
---         position = "bottom",
---     })
--- end, false)

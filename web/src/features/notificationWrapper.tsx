@@ -1,149 +1,196 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type NotifyType = "success" | "error" | "inform";
 type NotifyPosition =
-    | "top-right"
-    | "top-left"
-    | "top"
-    | "center-left"
-    | "center-right"
-    | "bottom-left"
-    | "bottom"
-    | "bottom-right";
+  | "top-right"
+  | "top-left"
+  | "top"
+  | "center-left"
+  | "center-right"
+  | "bottom-left"
+  | "bottom"
+  | "bottom-right";
 
 type NotifyAnimation = "none" | "spin" | "pulse" | "bounce";
 
-interface NotifyProps {
-    notify: {
-        title: string;
-        description: string;
-        icon?: string;
-        type?: NotifyType;
-        duration?: number;
-        position?: NotifyPosition;
-        animation?: NotifyAnimation;
-        showDuration?: boolean;
-        iconColor?: string;
-        style?: React.CSSProperties;
+interface NotifyState {
+  id: number;
+  title: string;
+  description: string;
+  icon?: string;
+  type?: NotifyType;
+  duration?: number;
+  position?: NotifyPosition;
+  animation?: NotifyAnimation;
+  showDuration?: boolean;
+  iconColor?: string;
+  style?: React.CSSProperties;
+}
+
+export default function NotificationWrapper() {
+  const [notifications, setNotifications] = useState<NotifyState[]>([]);
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      const data = event.data;
+
+      if (data?.action === "notify" && data.notify) {
+        const n = data.notify as Omit<NotifyState, "id">;
+        const id = Date.now() + Math.random();
+        const duration = n.duration ?? 3000;
+
+        const full: NotifyState = { id, ...n };
+
+        setNotifications((prev) => [...prev, full]);
+
+        setTimeout(() => {
+          setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+        }, duration);
+      }
     };
-    index?: number;
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  return (
+    <>
+      {notifications.map((n, index) => (
+        <Notify key={n.id} notify={n} index={index} />
+      ))}
+    </>
+  );
+}
+
+interface NotifyProps {
+  notify: {
+    title: string;
+    description: string;
+    icon?: string;
+    type?: NotifyType;
+    duration?: number;
+    position?: NotifyPosition;
+    animation?: NotifyAnimation;
+    showDuration?: boolean;
+    iconColor?: string;
+    style?: React.CSSProperties;
+  };
+  index?: number;
 }
 
 export function Notify({ notify, index = 0 }: NotifyProps) {
-    const {
-        title,
-        description,
-        icon,
-        type = "inform",
-        duration = 3000,
-        position = "top-right",
-        animation = "none",
-        showDuration = true,
-        iconColor,
-        style,
-    } = notify;
+  const {
+    title,
+    description,
+    icon,
+    type = "inform",
+    duration = 3000,
+    position = "top-right",
+    animation = "none",
+    showDuration = true,
+    iconColor,
+    style,
+  } = notify;
 
-    useEffect(() => {
-        if (!document.getElementById("fa-loader")) {
-            const link = document.createElement("link");
-            link.id = "fa-loader";
-            link.rel = "stylesheet";
-            link.href =
-                "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css";
-            link.crossOrigin = "anonymous";
-            document.head.appendChild(link);
-        }
-    }, []);
-
-    const defaultIcon =
-        type === "success"
-            ? "check-circle"
-            : type === "error"
-            ? "times-circle"
-            : "info-circle";
-
-    const resolvedIcon = icon || defaultIcon;
-
-    const iconClassBase = resolvedIcon.includes("fa-")
-        ? resolvedIcon
-        : `fas fa-${resolvedIcon}`;
-
-    const variantClass =
-        type === "success"
-            ? "notify-success"
-            : type === "error"
-            ? "notify-error"
-            : "notify-inform";
-
-    const directionClass =
-        position === "top"
-            ? "notify-slide-top"
-            : position === "bottom"
-            ? "notify-slide-bottom"
-            : position.endsWith("left")
-            ? "notify-slide-left"
-            : "notify-slide-right";
-
-    const iconAnimationClass =
-        animation === "spin"
-            ? "icon-spin"
-            : animation === "pulse"
-            ? "icon-pulse"
-            : animation === "bounce"
-            ? "icon-bounce"
-            : "";
-
-    const iconClass = `${iconClassBase} ${iconAnimationClass}`;
-
-    const baseStyle: React.CSSProperties = {
-        animationDuration: `${duration}ms`,
-        ["--notify-duration" as any]: `${duration}ms`,
-    };
-
-    const offset = index * 80;
-    if (position.startsWith("top")) {
-        baseStyle.marginTop = `${offset}px`;
-    } else if (position.startsWith("bottom")) {
-        baseStyle.marginBottom = `${offset}px`;
+  useEffect(() => {
+    if (!document.getElementById("fa-loader")) {
+      const link = document.createElement("link");
+      link.id = "fa-loader";
+      link.rel = "stylesheet";
+      link.href =
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css";
+      link.crossOrigin = "anonymous";
+      document.head.appendChild(link);
     }
+  }, []);
 
-    const wrapperStyle: React.CSSProperties = {
-        ...baseStyle,
-        ...(style || {}),
-    };
+  const defaultIcon =
+    type === "success"
+      ? "check-circle"
+      : type === "error"
+      ? "times-circle"
+      : "info-circle";
 
-    const iconStyle: React.CSSProperties = {};
-    if (iconColor) {
-        iconStyle.color = iconColor;
-    }
+  const resolvedIcon = icon || defaultIcon;
 
-    return (
-        <>
-            <style>{styles}</style>
+  const iconClassBase = resolvedIcon.includes("fa-")
+    ? resolvedIcon
+    : `fas fa-${resolvedIcon}`;
 
-            <div
-                className={`notify-wrapper ${variantClass} ${position} ${directionClass}`}
-                style={wrapperStyle}
-            >
-                <div className="icon-wrapper">
-                    <div className="icon-ring">
-                        {showDuration && (
-                            <svg className="ring-svg" viewBox="0 0 28 28">
-                                <circle className="ring-bg" cx="14" cy="14" r="12" />
-                                <circle className="ring-progress" cx="14" cy="14" r="12" />
-                            </svg>
-                        )}
-                        <i className={iconClass} style={iconStyle}></i>
-                    </div>
-                </div>
+  const variantClass =
+    type === "success"
+      ? "notify-success"
+      : type === "error"
+      ? "notify-error"
+      : "notify-inform";
 
-                <div className="title-description-wrap">
-                    <div className="title">{title}</div>
-                    <div className="description">{description}</div>
-                </div>
-            </div>
-        </>
-    );
+  const directionClass =
+    position === "top"
+      ? "notify-slide-top"
+      : position === "bottom"
+      ? "notify-slide-bottom"
+      : position.endsWith("left")
+      ? "notify-slide-left"
+      : "notify-slide-right";
+
+  const iconAnimationClass =
+    animation === "spin"
+      ? "icon-spin"
+      : animation === "pulse"
+      ? "icon-pulse"
+      : animation === "bounce"
+      ? "icon-bounce"
+      : "";
+
+  const iconClass = `${iconClassBase} ${iconAnimationClass}`;
+
+  const baseStyle: React.CSSProperties = {
+    animationDuration: `${duration}ms`,
+    ["--notify-duration" as any]: `${duration}ms`,
+  };
+
+  const offset = index * 80;
+  if (position.startsWith("top")) {
+    baseStyle.marginTop = `${offset}px`;
+  } else if (position.startsWith("bottom")) {
+    baseStyle.marginBottom = `${offset}px`;
+  }
+
+  const wrapperStyle: React.CSSProperties = {
+    ...baseStyle,
+    ...(style || {}),
+  };
+
+  const iconStyle: React.CSSProperties = {};
+  if (iconColor) iconStyle.color = iconColor;
+
+  return (
+    <>
+      <style>{styles}</style>
+
+      <div
+        className={`notify-wrapper ${variantClass} ${position} ${directionClass}`}
+        style={wrapperStyle}
+      >
+        <div className="icon-wrapper">
+          <div className="icon-ring">
+            {showDuration && (
+              <svg className="ring-svg" viewBox="0 0 28 28">
+                <circle className="ring-bg" cx="14" cy="14" r="12" />
+                <circle className="ring-progress" cx="14" cy="14" r="12" />
+              </svg>
+            )}
+            <i className={iconClass} style={iconStyle}></i>
+          </div>
+        </div>
+
+        <div className="title-description-wrap">
+          <div className="title">{title}</div>
+          <div className="description">{description}</div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 const styles = `
@@ -350,5 +397,3 @@ const styles = `
         100% { transform: translateY(-2px); }
     }
 `;
-
-export default Notify;

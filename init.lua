@@ -18,5 +18,16 @@ if GetResourceState(bridgeName) ~= 'started' then
 end
 
 if not IsDuplicityVersion() then
-    txz = exports[bridgeName]:getBridge()
+    txz = nil
+    while true do
+        local ok = pcall(function()
+            txz = exports[bridgeName]:getBridge()
+        end)
+
+        if ok and txz then
+            break
+        end
+
+        Wait(0)
+    end
 end
