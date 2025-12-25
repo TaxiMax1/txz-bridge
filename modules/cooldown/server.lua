@@ -1,3 +1,4 @@
+txz = txz or {}
 local TABLE = 'txz_metadata'
 
 local function now() return os.time() end
@@ -18,7 +19,7 @@ local function saveData(identifier, data)
                           ON DUPLICATE KEY UPDATE metadata = VALUES(metadata)]]):format(TABLE), { identifier, encoded })
 end
 
-local function CooldownRemaining(resource, identifier)
+local function txz.CooldownRemaining(resource, identifier)
     local data = loadData(identifier)
     local r = data[resource]
     if r and type(r.cooldown) == 'number' then
@@ -27,7 +28,7 @@ local function CooldownRemaining(resource, identifier)
     return 0
 end
 
-local function SetCooldown(resource, identifier, seconds)
+local function txz.SetCooldown(resource, identifier, seconds)
     seconds = tonumber(seconds) or 0
     local data = loadData(identifier)
     data[resource] = data[resource] or {}
@@ -36,7 +37,7 @@ local function SetCooldown(resource, identifier, seconds)
     return true
 end
 
-local function ClearCooldown(resource, identifier)
+local function txz.ClearCooldown(resource, identifier)
     local data = loadData(identifier)
     if data[resource] then
         data[resource].cooldown = nil
@@ -44,6 +45,14 @@ local function ClearCooldown(resource, identifier)
     end
 end
 
-exports('CooldownRemaining', CooldownRemaining)
-exports('SetCooldown', SetCooldown)
-exports('ClearCooldown', ClearCooldown)
+exports("CooldownRemaining", function(...)
+    return txz.CooldownRemaining(...)
+end)
+
+exports("SetCooldown", function(...)
+    return txz.SetCooldown(...)
+end)
+
+exports("ClearCooldown", function(...)
+    return txz.ClearCooldown(...)
+end)

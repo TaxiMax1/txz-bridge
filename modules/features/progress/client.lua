@@ -1,8 +1,9 @@
 txz = txz or {}
 
+local CURRENT = nil
+
 local function playAnim(data)
     local ped = PlayerPedId()
-
     if not data.anim then return end
 
     local anim = data.anim
@@ -23,7 +24,6 @@ local function playAnim(data)
     local lockX = anim.lockX or false
     local lockY = anim.lockY or false
     local lockZ = anim.lockZ or false
-    local playEnter = anim.playEnter ~= false
 
     if scenario then
         TaskStartScenarioInPlace(ped, scenario, 0, true)
@@ -31,25 +31,10 @@ local function playAnim(data)
     end
 
     RequestAnimDict(dict)
-    while not HasAnimDictLoaded(dict) do
-        Wait(0)
-    end
+    while not HasAnimDictLoaded(dict) do Wait(0) end
 
-    TaskPlayAnim(
-        ped,
-        dict,
-        clip,
-        blendIn,
-        blendOut,
-        duration,
-        flag,
-        playbackRate,
-        lockX,
-        lockY,
-        lockZ
-    )
+    TaskPlayAnim(ped, dict, clip, blendIn, blendOut, duration, flag, playbackRate, lockX, lockY, lockZ)
 end
-
 
 local function attachProps(data)
     local ped = PlayerPedId()
@@ -88,7 +73,6 @@ local function attachProps(data)
     return created
 end
 
-
 local function applyDisableControls(data)
     local disable = data.disable
     if not disable then return end
@@ -100,17 +84,39 @@ local function applyDisableControls(data)
             if disable.combat then DisablePlayerFiring(PlayerPedId(), true) end
             if disable.mouse then DisableControlAction(0, 1, true); DisableControlAction(0, 2, true) end
             if disable.sprint then DisableControlAction(0, 21, true) end
-
             Wait(0)
         end
     end)
 end
 
+local function cleanupProgress(state)
+    if not state then return end
+    state.data._active = false
+
+    ClearPedTasks(PlayerPedId())
+
+    if state.props then
+        for _, obj in ipairs(state.props) do
+            DeleteEntity(obj)
+        end
+    end
+
+    SendNUIMessage({ action = "progress:stop" })
+    CURRENT = nil
+end
+
+RegisterNUICallback("progress:cancel", function(_, cb)
+    if CURRENT and CURRENT.promise then
+        CURRENT.cancelled = true
+        CURRENT.promise:resolve(false)
+        cleanupProgress(CURRENT)
+    end
+    cb({ ok = true })
+end)
 
 function txz.progressBar(data)
     if type(data) ~= "table" then return false end
 
-    local label = data.label or "Processing..."
     local duration = data.duration or (data.anim and data.anim.duration) or 2000
 
     data._active = true
@@ -118,30 +124,52 @@ function txz.progressBar(data)
     applyDisableControls(data)
     local props = attachProps(data)
 
+    local p = promise.new()
+    CURRENT = {
+        promise = p,
+        cancelled = false,
+        props = props,
+        data = data
+    }
+
     SendNUIMessage({
         action = "progress",
-        label = label,
-        duration = duration
+        duration = duration,
+        title = data.title,
+        subtitle = data.subtitle,
+        percent = data.percent,
+        icon = data.icon,
+        iconColor = data.iconColor,
+        canCancel = (data.canCancel ~= false)
     })
 
-    local p = promise.new()
-    SetTimeout(duration, function()
-        p:resolve(true)
+    CreateThread(function()
+        local start = GetGameTimer()
+        while data._active do
+            if CURRENT and CURRENT.cancelled then
+                return
+            end
+            if (GetGameTimer() - start) >= duration then
+                p:resolve(true)
+                cleanupProgress(CURRENT)
+                return
+            end
+            Wait(10)
+        end
     end)
 
     local result = Citizen.Await(p)
-
     data._active = false
-    ClearPedTasks(PlayerPedId())
 
-    for _, obj in ipairs(props) do
-        DeleteEntity(obj)
+    if CURRENT then
+        cleanupProgress(CURRENT)
     end
 
-    return result
+    return result == true
 end
-
 
 RegisterNetEvent("progress:show", function(data)
     txz.progressBar(data)
 end)
+
+exports("progressBar", txz.progressBar)

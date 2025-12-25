@@ -1,64 +1,106 @@
-ESX = exports['es_extended']:getSharedObject()
+local MetadataCache = {}
 
-CreateThread(function()
-    print("[txz_metadata] Starting metadata scan...")
+local function GetLicense(src)
+    local identifiers = GetPlayerIdentifiers(src)
+    for _, id in ipairs(identifiers) do
+        if id:sub(1, 8) == "license:" then
+            return id
+        end
+    end
+    return nil
+end
 
-    MySQL.Async.fetchAll("SELECT license, metadata FROM txz_metadata", {}, function(result)
-        local updated = 0
-
-        for _, row in ipairs(result) do
-            local license = row.license
-            local fixed = false
-            local decoded = nil
-
-            local success, parsed = pcall(json.decode, row.metadata)
-
-            if not success or type(parsed) ~= "table" then
-                print(("[txz_metadata] Fixer LICENSE %s - metadata er ugyldig JSON"):format(license))
-                decoded = {}
-                fixed = true
-            else
-                decoded = parsed
-            end
-
-            if not decoded.taxijob or type(decoded.taxijob) ~= "table" then
-                print(("[txz_metadata] Tilføjer manglende taxijob metadata for %s"):format(license))
-                decoded.taxijob = {
-                    xp = 0,
-                    profit = 0,
-                    total = 0
-                }
-                fixed = true
-            else
-                local tj = decoded.taxijob
-                if type(tj.xp) ~= "number" or type(tj.profit) ~= "number" or type(tj.total) ~= "number" then
-                    print(("[txz_metadata] Nulstiller ugyldige taxijob felter for %s"):format(license))
-                    decoded.taxijob = {
-                        xp = tonumber(tj.xp) or 0,
-                        profit = tonumber(tj.profit) or 0,
-                        total = tonumber(tj.total) or 0
-                    }
-                    fixed = true
-                end
-            end
-
-            if fixed then
-                MySQL.Async.execute([[
-                    UPDATE txz_metadata
-                    SET metadata = @metadata
-                    WHERE license = @license
-                ]], {
-                    ['@license'] = license,
-                    ['@metadata'] = json.encode(decoded)
-                }, function(rowsChanged)
-                    if rowsChanged > 0 then
-                        updated += 1
-                    end
-                end)
-            end
+local function EnsureRowExists(license, cb)
+    MySQL.Async.fetchScalar("SELECT 1 FROM txz_metadata WHERE license = @license LIMIT 1", {
+        ['@license'] = license
+    }, function(exists)
+        if exists then
+            if cb then cb(true) end
+            return
         end
 
-        Wait(1000)
-        print(("[txz_metadata] Færdig! Rettede %d rækker."):format(updated))
+        MySQL.Async.execute("INSERT INTO txz_metadata (license, metadata) VALUES (@license, @metadata)", {
+            ['@license'] = license,
+            ['@metadata'] = json.encode({})
+        }, function()
+            if cb then cb(true) end
+        end)
     end)
+end
+
+local function LoadMetadata(license, cb)
+    if not license then
+        if cb then cb({}) end
+        return
+    end
+
+    MySQL.Async.fetchScalar("SELECT metadata FROM txz_metadata WHERE license = @license LIMIT 1", {
+        ['@license'] = license
+    }, function(raw)
+        if not raw or raw == "" then
+            MetadataCache[license] = {}
+            if cb then cb(MetadataCache[license]) end
+            return
+        end
+
+        local ok, decoded = pcall(json.decode, raw)
+        if not ok or type(decoded) ~= "table" then
+            decoded = {}
+        end
+
+        MetadataCache[license] = decoded
+        if cb then cb(decoded) end
+    end)
+end
+
+ESX.RegisterServerCallback('txz:getPlayerData', function(src, cb)
+    local license = GetLicense(src)
+    if not license then
+        cb({ metadata = {} })
+        return
+    end
+
+    if MetadataCache[license] then
+        cb({ metadata = MetadataCache[license] })
+        return
+    end
+
+    EnsureRowExists(license, function()
+        LoadMetadata(license, function(meta)
+            cb({ metadata = meta or {} })
+        end)
+    end)
+end)
+
+RegisterNetEvent('txz:setMetadata', function(key, value)
+    local src = source
+    local license = GetLicense(src)
+    if not license then return end
+
+    EnsureRowExists(license, function()
+        LoadMetadata(license, function(meta)
+            meta = meta or {}
+            meta[key] = value
+            MetadataCache[license] = meta
+
+            MySQL.Async.execute([[
+                UPDATE txz_metadata
+                SET metadata = @metadata
+                WHERE license = @license
+            ]], {
+                ['@license'] = license,
+                ['@metadata'] = json.encode(meta)
+            })
+
+            TriggerClientEvent('txz:playerDataUpdated', src, { metadata = meta })
+        end)
+    end)
+end)
+
+AddEventHandler('playerDropped', function()
+    local src = source
+    local license = GetLicense(src)
+    if license then
+        MetadataCache[license] = nil
+    end
 end)

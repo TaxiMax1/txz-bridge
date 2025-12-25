@@ -90,7 +90,7 @@ const styles = `
         display: flex;
         align-items: center;
         gap: 12px;
-        background: rgba(31, 31, 35);
+        background: #141416ff;
         padding: 14px 16px;
         border-radius: 4px;
         color: white;
@@ -102,7 +102,6 @@ const styles = `
         animation: fadeOut 0.2s ease-out forwards;
     }
 
-    /* ✅ ONLY opacity here, NO transform */
     @keyframes fadeIn {
         from { opacity: 0; }
         to   { opacity: 1; }
@@ -113,7 +112,6 @@ const styles = `
         to   { opacity: 0; }
     }
 
-    /* ✅ Positioning uses left/top + translate ONLY for centering */
     .left-center {
         top: 50%;
         left: 1%;

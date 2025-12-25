@@ -1,9 +1,11 @@
+txz = txz or {}
+
 ---@param model string
 ---@param coords vector3
 ---@param heading number
 ---@param cb function | nil
 ---@return number | nil vehicle
-function SpawnCar(model, coords, heading, cb)
+function txz.spawncar(model, coords, heading, cb)
     local hash = GetHashKey(model)
     RequestModel(hash)
 
@@ -33,4 +35,6 @@ function SpawnCar(model, coords, heading, cb)
     return vehicle
 end
 
-exports('SpawnCar', SpawnCar)
+exports("spawncar", function(...)
+    return txz.spawncar(...)
+end)

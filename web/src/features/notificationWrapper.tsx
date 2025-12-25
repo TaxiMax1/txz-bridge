@@ -201,6 +201,7 @@ const styles = `
         gap: 15px;
         border-radius: 6px;
         min-width: 300px;
+        max-width: 300px;
         min-height: 60px;
         padding: 10px 15px;
         background: #141416ff;

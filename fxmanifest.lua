@@ -12,6 +12,7 @@ shared_scripts {
 }
 
 client_scripts {
+  'modules/getinfo/client.lua',
   'modules/*.lua',
   'modules/vehicle/*.lua',
   'modules/ped/*.lua',
@@ -22,14 +23,16 @@ client_scripts {
   'modules/features/notify/client.lua',
   'modules/features/progress/client.lua',
   'modules/features/textui/client.lua',
+  'modules/features/timeline/client.lua',
+  'modules/features/context/client.lua',
 }
 
 server_scripts {
+  '@oxmysql/lib/MySQL.lua',
   'server.lua',
-  'modules/getinfo/*.lua',
+  'modules/getinfo/server.lua',
   'modules/locales/server.lua',
   'modules/cooldown/server.lua',
-  '@oxmysql/lib/MySQL.lua',
 }
 
 exports {

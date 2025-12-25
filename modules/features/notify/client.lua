@@ -3,7 +3,7 @@ txz = txz or {}
 function txz.notify(data)
     if type(data) ~= "table" then return end
 
-    local title = data.title or "Notification"
+    local title = data.title or ""
     local description = data.description or ""
     local notifType = data.type or "inform"
     local icon = data.icon or ""
